@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0b2a6b">
+<title>MetroScan · Government Bus Info</title>
+<style>
+  :root { --navy:#0b2a6b; --blue:#1e5bd8; --saffron:#ff9933; --green:#138808; --bg:#eef3fb; --card:#fff; --text:#14213d; --muted:#5b6b8a; --line:#dbe4f3; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#0c1426; --card:#15203a; --text:#eaf0ff; --muted:#9fb0d0; --line:#24345a; } }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:system-ui,-apple-system,"Segoe UI",sans-serif; color:var(--text);
+    background:var(--bg) radial-gradient(circle at 1px 1px, var(--line) 1px, transparent 0) 0 0/22px 22px; min-height:100vh; }
+  .tricolor { height:6px; background:linear-gradient(90deg,var(--saffron) 33%,#fff 33% 66%,var(--green) 66%); }
+  header { position:relative; background:linear-gradient(160deg,var(--navy),var(--blue)); color:#fff; padding:18px 16px 0; overflow:hidden; }
+  .brand { display:flex; align-items:center; gap:10px; font-weight:700; letter-spacing:.04em; font-size:.9rem; opacity:.95; }
+  .brand svg { width:26px; height:26px; }
+  .brand small { display:block; font-weight:400; font-size:.7rem; opacity:.8; letter-spacing:.08em; }
+  h1 { margin:14px 0 2px; font-size:1.55rem; display:flex; align-items:center; gap:8px; }
+  h1 svg { width:26px; height:26px; flex:none; color:var(--saffron); }
+  .sub { font-size:.85rem; opacity:.85; margin-bottom:12px; }
+  .skyline { position:absolute; right:0; bottom:22px; width:260px; opacity:.13; }
+  .road { position:relative; height:54px; margin:0 -16px; }
+  .road::before { content:""; position:absolute; left:0; right:0; bottom:0; height:16px; background:#1c2333; }
+  .road::after { content:""; position:absolute; left:0; right:0; bottom:7px; height:2px;
+    background:repeating-linear-gradient(90deg,#f5c542 0 16px,transparent 16px 32px); }
+  .bus { position:absolute; bottom:8px; left:0; width:96px; animation:drive 14s linear infinite; }
+  @keyframes drive { from { transform:translateX(-110px); } to { transform:translateX(105vw); } }
+  @media (prefers-reduced-motion: reduce) { .bus { animation:none; left:20px; } }
+  main { max-width:640px; margin:0 auto; padding:14px 16px 40px; }
+  #status { display:inline-flex; align-items:center; gap:8px; padding:7px 12px; border-radius:999px; font-size:.8rem; background:var(--card); border:1px solid var(--line); margin-bottom:6px; }
+  #status .dot { width:9px; height:9px; border-radius:50%; background:#999; }
+  #status.live { color:#0f7a4d; } #status.live .dot { background:#12b76a; box-shadow:0 0 0 0 rgba(18,183,106,.6); animation:pulse 1.8s infinite; }
+  #status.offline { color:#b54708; } #status.offline .dot { background:#f79009; }
+  @keyframes pulse { 70% { box-shadow:0 0 0 8px rgba(18,183,106,0); } 100% { box-shadow:0 0 0 0 rgba(18,183,106,0); } }
+  h2 { display:flex; align-items:center; gap:8px; margin:22px 0 10px; font-size:.78rem; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); }
+  h2 svg { width:18px; height:18px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:12px 14px; margin-bottom:10px;
+    display:flex; align-items:center; gap:12px; box-shadow:0 2px 6px rgba(11,42,107,.06); }
+  .route { border-left:5px solid var(--blue); }
+  .ico { width:42px; height:42px; border-radius:12px; background:#e6eefc; color:var(--blue); display:grid; place-items:center; flex:none; }
+  @media (prefers-color-scheme: dark) { .ico { background:#1d2d52; color:#8db4ff; } }
+  .ico svg { width:24px; height:24px; }
+  .info { flex:1; min-width:0; }
+  .no { display:inline-block; background:var(--navy); color:#fff; border-radius:6px; padding:1px 8px; font-weight:700; font-size:.85rem; margin-bottom:3px; }
+  .to { font-size:.95rem; }
+  .eta { text-align:right; font-weight:800; font-size:1.25rem; color:var(--green); line-height:1.1; }
+  .eta.soon { color:#d92d20; }
+  .eta small { display:block; font-weight:400; font-size:.72rem; color:var(--muted); margin-top:2px; }
+  .place .ico { background:#fff1e0; color:#d9730d; }
+  .type { font-size:.78rem; color:var(--muted); }
+  .walk { font-size:.8rem; color:var(--muted); text-align:right; white-space:nowrap; }
+  footer { text-align:center; font-size:.72rem; color:var(--muted); padding:8px 16px 24px; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="bus" viewBox="0 0 120 60">
+    <rect x="4" y="6" width="108" height="40" rx="8" fill="#1e5bd8"/>
+    <rect x="4" y="30" width="108" height="9" fill="#fbbf24"/>
+    <rect x="12" y="12" width="16" height="13" rx="2" fill="#dbeafe"/>
+    <rect x="32" y="12" width="16" height="13" rx="2" fill="#dbeafe"/>
+    <rect x="52" y="12" width="16" height="13" rx="2" fill="#dbeafe"/>
+    <rect x="72" y="12" width="16" height="13" rx="2" fill="#dbeafe"/>
+    <rect x="92" y="12" width="16" height="22" rx="3" fill="#bfdbfe"/>
+    <text x="12" y="37" font-size="7" font-weight="700" fill="#1e3a8a" font-family="Arial">GOVT. BUS</text>
+    <circle cx="30" cy="47" r="8" fill="#1f2937"/><circle cx="30" cy="47" r="3" fill="#9ca3af"/>
+    <circle cx="88" cy="47" r="8" fill="#1f2937"/><circle cx="88" cy="47" r="3" fill="#9ca3af"/>
+    <circle cx="110" cy="40" r="2.2" fill="#fde68a"/>
+  </symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></g></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 10-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></g></symbol>
+  <symbol id="i-park" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="5.5"/><path d="M12 14.5V21M8.5 21h7"/></g></symbol>
+  <symbol id="i-shop" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h14l-1 12H6L5 8z"/><path d="M9 8a3 3 0 016 0"/></g></symbol>
+  <symbol id="i-food" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v7a2 2 0 004 0V3M8 12v9M17 3c-2.5 2-2.5 7 0 9v9"/></g></symbol>
+  <symbol id="i-land" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10l9-6 9 6M5 10v8M9 10v8M15 10v8M19 10v8M3 21h18"/></g></symbol>
+  <symbol id="skyline" viewBox="0 0 260 70"><g fill="#fff"><rect x="0" y="30" width="22" height="40"/><rect x="26" y="10" width="18" height="60"/><rect x="48" y="36" width="26" height="34"/><path d="M80 70V30l16-14 16 14v40z"/><rect x="118" y="20" width="20" height="50"/><rect x="142" y="38" width="24" height="32"/><rect x="170" y="6" width="16" height="64"/><rect x="190" y="28" width="30" height="42"/><rect x="224" y="16" width="20" height="54"/></g></symbol>
+</svg>
+
+<div class="tricolor"></div>
+<header>
+  <div class="brand">
+    <svg viewBox="0 0 24 24"><use href="#bus"/></svg>
+    <div>METROSCAN<small>PUBLIC BUS INFORMATION</small></div>
+  </div>
+  <svg class="skyline" viewBox="0 0 260 70"><use href="#skyline"/></svg>
+  <h1><svg><use href="#i-pin"/></svg><span id="stop">Loading…</span></h1>
+  <div class="sub">Live bus timings, routes and places near this stop</div>
+  <div class="road"><svg class="bus" viewBox="0 0 120 60"><use href="#bus"/></svg></div>
+</header>
+
+<main>
+  <div id="status"><span class="dot"></span><span id="statusText">Loading…</span></div>
+  <h2><svg><use href="#i-clock"/></svg>Next buses</h2>
+  <div id="routes"></div>
+  <h2><svg><use href="#i-pin"/></svg>Nearby places to visit</h2>
+  <div id="places"></div>
+</main>
+<footer>MetroScan · demo project · scan the QR at any bus stop</footer>
+
+<script>
+const id = new URLSearchParams(location.search).get("stop") || "MG01";
+const KEY = "metroscan:" + id;
+const ICONS = { Park:"i-park", Shopping:"i-shop", Food:"i-food", Landmark:"i-land" };
+
+function render(d, live) {
+  document.getElementById("stop").textContent = d.name;
+  document.title = d.name + " · MetroScan";
+  document.getElementById("routes").innerHTML = d.routes.map(r => {
+    const m = r.arrivals[0];
+    return `<div class="card route">
+      <div class="ico"><svg><use href="#bus"/></svg></div>
+      <div class="info"><span class="no">${r.no}</span><div class="to">to ${r.to}</div></div>
+      <div class="eta ${m <= 2 ? "soon" : ""}">${m === 0 ? "Now" : m + " min"}<small>then ${r.arrivals[1]}, ${r.arrivals[2]} min</small></div>
+    </div>`;
+  }).join("");
+  document.getElementById("places").innerHTML = d.places.map(p =>
+    `<div class="card place">
+      <div class="ico"><svg><use href="#${ICONS[p.type] || "i-pin"}"/></svg></div>
+      <div class="info"><div>${p.name}</div><div class="type">${p.type}</div></div>
+      <div class="walk">${p.walkMins} min walk</div>
+    </div>`).join("");
+  const t = new Date(d.updated).toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"});
+  document.getElementById("status").className = live ? "live" : "offline";
+  document.getElementById("statusText").textContent =
+    live ? "Live · updated " + t : "Offline · last updated " + t + " (times may be outdated)";
+}
+
+async function load() {
+  try {
+    const res = await fetch("/api/stops/" + id);
+    if (!res.ok) throw new Error(res.status);
+    const d = await res.json();
+    try { localStorage.setItem(KEY, JSON.stringify(d)); } catch (e) {}
+    render(d, true);
+  } catch (e) {
+    let cached = null;
+    try { cached = JSON.parse(localStorage.getItem(KEY)); } catch (e2) {}
+    if (cached) render(cached, false);
+    else document.getElementById("statusText").textContent = "No connection and no saved data for this stop yet.";
+  }
+}
+load(); setInterval(load, 30000);
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js");
+</script>
+</body>
+</html>
